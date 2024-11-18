@@ -68,6 +68,16 @@ const bundleWithVite = ({
                   method: 'usage-pure',
                   version: '3.39.0',
                   proposals: true,
+                  shouldInjectPolyfill: (
+                    name: string,
+                    defaultShouldInject: boolean
+                  ) => {
+                    if (defaultShouldInject) {
+                      throw new Error(`${name} 폴리필이 필요합니다.`)
+                    }
+
+                    return defaultShouldInject
+                  },
                 },
               ],
             ],
