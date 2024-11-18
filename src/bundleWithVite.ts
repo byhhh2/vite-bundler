@@ -1,6 +1,6 @@
 import {type UserConfig as ViteConfig, mergeConfig} from 'vite'
 import browserslistToEsbuild from 'browserslist-to-esbuild'
-import {getBabelOutputPlugin} from '@rollup/plugin-babel'
+import {babel} from '@rollup/plugin-babel'
 
 import preventPolyfill from './plugins/preventPolyfill'
 import {validateInsideSrcFolder} from './validator/entry'
@@ -43,13 +43,36 @@ const bundleWithVite = ({
       },
       rollupOptions: {
         plugins: [
-          getBabelOutputPlugin({
+          babel({
+            babelHelpers: 'runtime',
             plugins: [
+              /**
+               * @see https://babeljs.io/docs/babel-plugin-transform-runtime
+               * - helper, polyfill을 삽입하는 역할
+               * - .browserslistrc를 읽는 기능이 없다.
+               */
+              ['@babel/plugin-transform-runtime'],
+              /**
+               * @see https://www.npmjs.com/package/babel-plugin-polyfill-corejs3
+               * - 폴리필 자동 추가, core-js3 기반으로 동작
+               * - core-js 버전 major, minor, patch 지정 가능
+               * - target 환경에 따라 폴리필 결정 (target이 설정되어 있지 않다면 .browserslistrc 읽음)
+               * - core-js pure 버전 지원
+               */
               [
-                '@babel/plugin-transform-runtime',
-                {corejs: {version: 3, proposals: true}},
+                'babel-plugin-polyfill-corejs3',
+                {
+                  // .browserslistrc 읽기
+                  target: undefined,
+                  /** @see https://github.com/babel/babel-polyfills/blob/HEAD/docs/usage.md#method */
+                  method: 'usage-pure',
+                  version: '3.39.0',
+                  proposals: true,
+                },
               ],
             ],
+            extensions: ['.js', '.jsx', '.ts', '.tsx'],
+            exclude: /node_modules/,
           }),
           // 폴리필 추가 후에 검사해야 됨
           preventPolyfill(),
@@ -57,7 +80,7 @@ const bundleWithVite = ({
         // 지원하는 모듈 시스템
         output: output || getRollupOutputOption(formats),
         // node_modules를 build에서 제외
-        external: (id) => /node_modules/.test(id),
+        external: (id) => /node_modules/.test(id) || /core-js-pure/.test(id),
       },
     },
     plugins: [],
