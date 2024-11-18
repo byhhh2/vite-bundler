@@ -11,7 +11,7 @@
     // typescript가 어떤 js 내장 라이브러리를 사용할지
     // DOM: 브라우저 환경에서 사용할 수 있는 Web API (ex. document, window)
     // DOM.Iterable: DOM 객체를 for..of 구문으로 반복할 수 있게 해줌
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable", "ESNext"],
     "skipLibCheck": true,
 
     /* Bundler mode */
